@@ -1,1 +1,4 @@
 .DS_Store
+assignment/venv/
+assignment/assignment1/data/train_32x32.mat
+assignment/assignment1/data/test_32x32.mat
