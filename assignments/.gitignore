@@ -1,0 +1,3 @@
+venv/
+assignment1/data/train_32x32.mat
+assignment1/data/test_32x32.mat
