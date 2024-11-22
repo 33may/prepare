@@ -1,5 +1,7 @@
 import numpy as np
 
+from assignments.assignment1.linear_classifer import softmax, cross_entropy_loss
+
 
 def l2_regularization(W, reg_strength):
     """
@@ -13,30 +15,27 @@ def l2_regularization(W, reg_strength):
       loss, single value - l2 regularization loss
       gradient, np.array same shape as W - gradient of weight by l2 loss
     """
-    # TODO: Copy from the previous assignment
-    raise Exception("Not implemented!")
+    loss = reg_strength * np.sum(W ** 2)
+
+    grad = 2 * reg_strength * W
+
     return loss, grad
 
-
 def softmax_with_cross_entropy(preds, target_index):
-    """
-    Computes softmax and cross-entropy loss for model predictions,
-    including the gradient
+    predictions_c = preds.copy()
+    predictions_c = softmax(predictions_c)
+    loss = cross_entropy_loss(predictions_c, target_index)
+    dprediction = predictions_c.copy()
 
-    Arguments:
-      predictions, np array, shape is either (N) or (batch_size, N) -
-        classifier output
-      target_index: np array of int, shape is (1) or (batch_size) -
-        index of the true class for given sample(s)
+    if predictions_c.ndim == 1:
+        dprediction[target_index] -= 1
+    else:
+        batch_size = predictions_c.shape[0]
+        dprediction[np.arange(batch_size), target_index.ravel()] -= 1
+        dprediction /= batch_size
 
-    Returns:
-      loss, single value - cross-entropy loss
-      dprediction, np array same shape as predictions - gradient of predictions by loss value
-    """
-    # TODO: Copy from the previous assignment
-    raise Exception("Not implemented!")
+    return loss, dprediction
 
-    return loss, d_preds
 
 
 class Param:
@@ -52,13 +51,12 @@ class Param:
 
 class ReLULayer:
     def __init__(self):
-        pass
+        self.mask = None
 
     def forward(self, X):
-        # TODO: Implement forward pass
-        # Hint: you'll need to save some information about X
-        # to use it later in the backward pass
-        raise Exception("Not implemented!")
+
+        self.mask = (X > 0).astype(int)  # Сохраняем маску, где X > 0
+        return np.maximum(X, 0)
 
     def backward(self, d_out):
         """
@@ -72,9 +70,9 @@ class ReLULayer:
         d_result: np array (batch_size, num_features) - gradient
           with respect to input
         """
-        # TODO: Implement backward pass
-        # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
+
+        d_result = d_out * self.mask
+
         return d_result
 
     def params(self):
@@ -89,9 +87,9 @@ class FullyConnectedLayer:
         self.X = None
 
     def forward(self, X):
-        # TODO: Implement forward pass
-        # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
+        self.X = X  # Сохраняем входные данные для backward-pass
+        res = X @ self.W.value + self.B.value  # Линейное преобразование
+        return res
 
     def backward(self, d_out):
         """
@@ -107,15 +105,14 @@ class FullyConnectedLayer:
         d_result: np array (batch_size, n_input) - gradient
           with respect to input
         """
-        # TODO: Implement backward pass
-        # Compute both gradient with respect to input
-        # and gradients with respect to W and B
-        # Add gradients of W and B to their `grad` attribute
 
-        # It should be pretty similar to linear classifier from
-        # the previous assignment
+        d_input = d_out @ self.W.value.T
 
-        raise Exception("Not implemented!")
+        d_W = self.X.T @ d_out
+        self.W.grad += d_W
+
+        d_B = np.sum(d_out, axis=0, keepdims=True)
+        self.B.grad += d_B
 
         return d_input
 

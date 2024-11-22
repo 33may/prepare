@@ -47,12 +47,12 @@ def cross_entropy_loss(probs, target_index):
     Returns:
       loss: single value
     '''
-    if len(probs.shape) == 2:
-        correct_logprobs = -np.log(probs[np.arange(probs.shape[0]), target_index.ravel()])
-        loss = np.mean(correct_logprobs)
-    else:
+    if probs.ndim == 1:
         loss = -np.log(probs[target_index])
-
+    else:
+        batch_size = probs.shape[0]
+        correct_logprobs = -np.log(probs[np.arange(batch_size), target_index])
+        loss = np.mean(correct_logprobs)
     return loss
 
 

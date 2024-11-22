@@ -1,4 +1,10 @@
 .DS_Store
-assignment/venv/
-assignment/assignment1/data/train_32x32.mat
-assignment/assignment1/data/test_32x32.mat
+assignments/venv/
+assignments/assignment1/data/train_32x32.mat
+assignments/assignment1/data/test_32x32.mat
+
+assignments/assignment2/data/train_32x32.mat
+assignments/assignment2/data/test_32x32.mat
+
+indexing/hnsw_construction.mp4
+indexing/hnsw_search.mp4
