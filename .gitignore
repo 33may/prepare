@@ -6,5 +6,12 @@ assignments/assignment1/data/test_32x32.mat
 assignments/assignment2/data/train_32x32.mat
 assignments/assignment2/data/test_32x32.mat
 
+indexing/feder/
+
+indexing/*.mp4
+
+assignments/assignment3/data/train_32x32.mat
+assignments/assignment3/data/test_32x32.mat
+
 indexing/hnsw_construction.mp4
 indexing/hnsw_search.mp4
