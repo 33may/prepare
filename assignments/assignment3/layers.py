@@ -1,5 +1,7 @@
 import numpy as np
 
+from assignments.assignment1.linear_classifer import softmax
+
 
 def l2_regularization(W, reg_strength):
     '''
@@ -13,8 +15,10 @@ def l2_regularization(W, reg_strength):
       loss, single value - l2 regularization loss
       gradient, np.array same shape as W - gradient of weight by l2 loss
     '''
-    # TODO: Copy from previous assignment
-    raise Exception("Not implemented!")
+
+    loss = reg_strength * np.sum(np.square(W))
+
+    grad = 2 * reg_strength * W
 
     return loss, grad
 
@@ -34,8 +38,21 @@ def softmax_with_cross_entropy(predictions, target_index):
       loss, single value - cross-entropy loss
       dprediction, np array same shape as predictions - gradient of predictions by loss value
     '''
-    # TODO copy from the previous assignment
-    raise Exception("Not implemented!")
+
+    probs = softmax(predictions)
+
+    # all items are zeros except target_index so we just need sum over all batches logarithm of probabilirty true index
+
+    true_probs = probs[np.arange(probs.shape[0]), target_index]
+
+    true_probs_logs = np.log(true_probs)
+
+    loss = - np.mean(true_probs_logs, axis=0)
+
+    dprediction = probs
+    dprediction[np.arange(probs.shape[0]), target_index] -= 1
+    dprediction /= predictions.shape[0]
+
     return loss, dprediction
 
 
@@ -52,15 +69,14 @@ class Param:
 class ReLULayer:
     def __init__(self):
         pass
+        self.mask = None
 
     def forward(self, X):
-        # TODO copy from the previous assignment
-        raise Exception("Not implemented!")
+        self.mask = (X > 0).astype(int)
+        return np.maximum(X, 0)
 
     def backward(self, d_out):
-        # TODO copy from the previous assignment
-        raise Exception("Not implemented!")
-        return d_result
+        return d_out * self.mask
 
     def params(self):
         return {}
@@ -73,13 +89,19 @@ class FullyConnectedLayer:
         self.X = None
 
     def forward(self, X):
-        # TODO copy from the previous assignment
-        raise Exception("Not implemented!")
+        self.X = X
+        return X @ self.W.value + self.B.value
 
     def backward(self, d_out):
-        # TODO copy from the previous assignment
 
-        raise Exception("Not implemented!")
+        d_input = d_out @ self.W.value.T
+
+        d_W = self.X.T @ d_out
+        self.W.grad += d_W
+
+        d_B = np.sum(d_out, axis=0, keepdims=True)
+        self.B.grad += d_B
+
         return d_input
 
     def params(self):
@@ -112,6 +134,22 @@ class ConvolutionalLayer:
         self.padding = padding
 
         self.last_X = None
+
+
+    def compute_output_shape(self, input_shape):
+        '''
+        Computes the shape of the output tensor
+
+        Arguments:
+        input_shape, tuple - shape of input (batch_size, height, width, channels)
+
+        Returns:
+        tuple - shape of the output (batch_size, out_height, out_width, out_channels)
+        '''
+        _, height, width, _ = input_shape
+        out_height = height + 2 * self.padding - self.filter_size + 1
+        out_width = width + 2 * self.padding - self.filter_size + 1
+        return (None, out_height, out_width, self.out_channels)
 
 
     def forward(self, X):
@@ -272,6 +310,14 @@ class MaxPoolingLayer:
 
         return dX
 
+    def compute_output_shape(self, input_shape):
+        batch_size, height, width, channels = input_shape
+
+        out_height = (height - self.pool_size ) // self.stride + 1
+        out_width = (width - self.pool_size ) // self.stride + 1
+
+        return (batch_size, out_height, out_width, channels)
+
 
     def params(self):
         return {}
@@ -287,11 +333,13 @@ class Flattener:
         # TODO: Implement forward pass
         # Layer should return array with dimensions
         # [batch_size, hight*width*channels]
-        raise Exception("Not implemented!")
+        self.X_shape = X.shape
+
+        return X.reshape(batch_size, height * width * channels)
 
     def backward(self, d_out):
         # TODO: Implement backward pass
-        raise Exception("Not implemented!")
+        return d_out.reshape(self.X_shape)
 
     def params(self):
         # No params!

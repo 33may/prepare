@@ -102,7 +102,7 @@ class Trainer:
                 
                 for param_name, param in self.model.params().items():
                     optimizer = self.optimizers[param_name]
-                    param.value = optimizer.update(param.value, param.grad, self.learning_rate)
+                    param.value = optimizer.update(param.value, param.grad, self.learning_rate, param_name)
 
                 batch_losses.append(loss)
 
